@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input.tsx"
 import { Textarea } from "@/components/ui/textarea.tsx"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.tsx"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.tsx"
-import {useNavigate} from "react-router-dom";
 
 const formSchema = z.object({
     name: z.string().min(2, {
@@ -36,15 +35,17 @@ const formSchema = z.object({
 export default function ProfileForm() {
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: "",
-            features: "",
-            bio: "",
-        },
+        mode: "onChange", // 제출 시에만 유효성 검사 실행
+        criteriaMode: "firstError", // 각 필드에서 첫 번째 오류만 반환
+        shouldFocusError: true, // 오류 발생 시 해당 필드로 자동 포커스
+        // defaultValues: {
+        //     name: "",
+        //     features: "",
+        //     bio: "",
+        // },
     });
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,18 +62,14 @@ export default function ProfileForm() {
         console.log("프로필 이미지:", imageFile);
     }
 
-    function handleBackButton () {
-        navigate('/');
-    }
-
     return (
+        <div className="bg-[#7391e9]">
         <Card className="w-full max-w-md mx-auto">
-            <Button variant={"link"} onClick={handleBackButton}>메인 페이지로 이동하기</Button>
             <CardHeader>
-                <CardTitle className="text-center text-2xl">유레카 2기 대면반 프로필</CardTitle>
+                <CardTitle className="text-center text-2xl">Eureka Ssul</CardTitle>
                 <CardDescription className="text-center">
-                    유레카 2기 대면반 전용 익명 프로필 등록 양식입니다.
-                    여러분의 익명 프로필을 작성해주세요.
+                    자신의 프로필을 자유롭게 작성해주시기 바랍니다.
+                    대면반 동기들이 댓글을 남겨줄거에요!
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -140,7 +137,7 @@ export default function ProfileForm() {
                                 <FormItem>
                                     <FormLabel>특징</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="예: 개발자, 디자이너, 기획자" {...field} />
+                                        <Input placeholder="예: 꼼꼼함, 사교성이 좋음, 랩을 좋아함" {...field} />
                                     </FormControl>
                                     <FormDescription>
                                         유레카 2기 대면반에서 나를 표현할 수 있는 특징이나 관심사를 입력하세요.
@@ -176,5 +173,6 @@ export default function ProfileForm() {
                 </Form>
             </CardContent>
         </Card>
+        </div>
     );
 }
