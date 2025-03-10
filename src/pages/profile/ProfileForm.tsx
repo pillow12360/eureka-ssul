@@ -63,9 +63,8 @@ export default function ProfileForm() {
     }
 
     return (
-        <div  style={{ minHeight: "100vh", width: "100%", backgroundColor: "#7391e9" }}
-              className="flex items-center justify-center">
-        <Card className="w-full max-w-md mx-auto">
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#7391e9] p-4">
+            <Card className="w-full max-w-md mx-auto">
             <CardHeader>
                 <CardTitle className="text-center text-2xl">Eureka Ssul</CardTitle>
                 <CardDescription className="text-center">
