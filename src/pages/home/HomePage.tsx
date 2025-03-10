@@ -53,6 +53,8 @@ const HomePage: React.FC = () => {
 
     useEffect(() => {
         // 예: fetchProfiles().then(data => setProfiles(data));
+
+
         setProfiles(sampleProfiles);
     }, []);
 

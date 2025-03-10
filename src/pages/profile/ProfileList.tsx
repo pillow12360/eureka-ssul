@@ -1,126 +1,53 @@
+// src/pages/ProfileList.tsx
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import { Profile } from "@/types/profile";
-import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { useAlertDialogStore } from "@/store/useAlertDialogStore";
-import ProfileCard from "./ProfileCard"; // 개선된 컴포넌트 임포트
+import { profileApi, Profile } from "@/api/supabaseApi";
+import ProfileCard from "./ProfileCard";
 
-// 샘플 데이터 - 실제로는 API나 데이터베이스에서 가져올 것입니다
-const sampleProfiles: Profile[] = [
-    {
-        id: 1,
-        name: "김유레카",
-        features: "알고리즘, React, 백엔드",
-        bio: "안녕하세요! 풀스택 개발자를 꿈꾸는 김유레카입니다. 부트캠프에서 열심히 공부하고 있어요. 함께 성장해요!",
-        avatar: null,
-        comments: 5
-    },
-    {
-        id: 2,
-        name: "이코딩",
-        features: "디자인, UI/UX, Figma",
-        bio: "UI/UX 디자이너로 활동하고 있습니다. 사용자 중심 디자인과 인터랙션에 관심이 많아요. 부트캠프에서 개발 지식도 함께 쌓고 있습니다.",
-        avatar: null,
-        comments: 3
-    },
-    {
-        id: 3,
-        name: "박개발",
-        features: "Node.js, TypeScript, AWS",
-        bio: "백엔드 개발자 박개발입니다. 서버 아키텍처 설계와 클라우드 인프라에 관심이 많습니다. 취미는 알고리즘 문제 풀기와 오픈소스 기여입니다.",
-        avatar: null,
-        comments: 8
-    },
-    {
-        id: 4,
-        name: "최테크",
-        features: "머신러닝, Python, 데이터 분석",
-        bio: "데이터 사이언티스트를 꿈꾸고 있습니다. 통계와 머신러닝 알고리즘에 관심이 많고, 현재는 자연어 처리 프로젝트를 진행 중입니다.",
-        avatar: null,
-        comments: 2
-    }
-];
-
-// 샘플 댓글 데이터
-const sampleCommentsByProfileId = {
-    1: [
-        {
-            id: 1,
-            author: "박개발",
-            content: "정말 성실하게 활동하시는 것 같아요! 알고리즘 스터디에 관심 있으시면 함께해요.",
-            createdAt: "2024-03-08T12:30:00Z",
-            likes: 3
-        },
-        {
-            id: 2,
-            author: "이코딩",
-            content: "React 프로젝트 같이 해보면 좋을 것 같아요. 연락주세요!",
-            createdAt: "2024-03-09T15:45:00Z",
-            likes: 2
-        },
-    ],
-    2: [
-        {
-            id: 3,
-            author: "김유레카",
-            content: "디자인 감각이 정말 좋으신 것 같아요! UI/UX 관련 조언 부탁드립니다.",
-            createdAt: "2024-03-10T09:15:00Z",
-            likes: 1
-        },
-    ],
-    3: [
-        {
-            id: 4,
-            author: "최테크",
-            content: "서버 구축 관련해서 질문이 있는데 시간 되실 때 도움 받을 수 있을까요?",
-            createdAt: "2024-03-07T14:20:00Z",
-            likes: 4
-        },
-    ],
-    4: [
-        {
-            id: 5,
-            author: "박개발",
-            content: "데이터 분석 관련 프로젝트를 진행 중인데 조언 부탁드려요!",
-            createdAt: "2024-03-06T10:45:00Z",
-            likes: 2
-        },
-    ]
-};
-
-interface Comment {
-    id: number;
-    author: string;
-    content: string;
-    createdAt: string;
-    likes: number;
-}
-
-const ProfileList: React.FC = () => {
+const ProfileList = () => {
     const navigate = useNavigate();
+    const { toast } = useToast();
     const [profiles, setProfiles] = useState<Profile[]>([]);
-    const [expandedProfileId, setExpandedProfileId] = useState<number | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [comments, setComments] = useState<Record<number, Comment[]>>({});
-    const [newComments, setNewComments] = useState<Record<number, string>>({});
+    const [loading, setLoading] = useState(true);
+    const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null);
 
     const openProfileForm = useAlertDialogStore(state => state.open);
 
+    // 프로필 목록 불러오기
     useEffect(() => {
-        // 예: fetchProfiles().then(data => setProfiles(data));
-        setProfiles(sampleProfiles);
-        setComments(sampleCommentsByProfileId);
-        setLoading(false);
-    }, []);
+        const fetchProfiles = async () => {
+            setLoading(true);
+            try {
+                const { data, error } = await profileApi.getProfiles();
 
-    const handleProfileToggle = (profileId: number) => {
+                if (error) {
+                    toast({
+                        title: "프로필 불러오기 실패",
+                        description: error.message,
+                        variant: "destructive",
+                    });
+                    return;
+                }
+
+                if (data) {
+                    setProfiles(data);
+                }
+            } catch (err) {
+                console.error("프로필 로딩 중 오류 발생:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfiles();
+    }, [toast]);
+
+    const handleProfileToggle = (profileId: string) => {
         setExpandedProfileId(expandedProfileId === profileId ? null : profileId);
-
-        // 실제 구현 시에는 여기서 API 호출로 상세 정보를 가져올 수 있음
-        // if (expandedProfileId !== profileId) {
-        //   fetchProfileDetails(profileId).then(data => { ... });
-        // }
     };
 
     const handleCreateProfileClick = (): void => {
@@ -128,51 +55,14 @@ const ProfileList: React.FC = () => {
             title: '프로필 꾸미러 가기',
             description: '사람들에게 자신만의 소개글을 공유해주세요!',
             onConfirm: () => {
-                navigate('/profile/create')
+                navigate('/profile/create');
             },
             confirmText: '확인'
         });
     };
 
-    const handleEditProfile = (profileId: number) => {
+    const handleEditProfile = (profileId: string) => {
         navigate(`/profile/edit/${profileId}`);
-    };
-
-    const handleCommentChange = (profileId: number, value: string) => {
-        setNewComments({
-            ...newComments,
-            [profileId]: value
-        });
-    };
-
-    const handleCommentSubmit = (profileId: number) => {
-        if (!newComments[profileId] || newComments[profileId].trim() === '') return;
-
-        const newComment = {
-            id: Math.floor(Math.random() * 1000) + 100, // 임시 ID 생성
-            author: "현재 사용자", // 실제로는 로그인한 사용자 정보를 사용
-            content: newComments[profileId],
-            createdAt: new Date().toISOString(),
-            likes: 0
-        };
-
-        // 해당 프로필의 댓글 목록 업데이트
-        const updatedComments = {
-            ...comments,
-            [profileId]: comments[profileId] ? [...comments[profileId], newComment] : [newComment]
-        };
-        setComments(updatedComments);
-
-        // 프로필의 댓글 수 업데이트
-        const updatedProfiles = profiles.map(profile =>
-            profile.id === profileId
-                ? { ...profile, comments: (profile.comments || 0) + 1 }
-                : profile
-        );
-        setProfiles(updatedProfiles);
-
-        // 입력 필드 초기화
-        setNewComments({ ...newComments, [profileId]: '' });
     };
 
     const formatDate = (dateString: string) => {
@@ -233,23 +123,28 @@ const ProfileList: React.FC = () => {
             {/* 프로필 그리드 */}
             <section>
                 <h2 className="text-2xl font-semibold mb-4">프로필 목록</h2>
-                <div className="space-y-6">
-                    {profiles.map((profile) => (
-                        <div key={profile.id} className="mb-6">
-                            <ProfileCard
-                                profile={profile}
-                                isExpanded={expandedProfileId === profile.id}
-                                comments={comments[profile.id] || []}
-                                newComment={newComments[profile.id] || ''}
-                                onToggle={() => handleProfileToggle(profile.id)}
-                                onEditProfile={handleEditProfile}
-                                onCommentChange={(value) => handleCommentChange(profile.id, value)}
-                                onCommentSubmit={() => handleCommentSubmit(profile.id)}
-                                formatDate={formatDate}
-                            />
-                        </div>
-                    ))}
-                </div>
+                {profiles.length > 0 ? (
+                    <div className="space-y-6">
+                        {profiles.map((profile) => (
+                            <div key={profile.id} className="mb-6">
+                                <ProfileCard
+                                    profile={profile}
+                                    isExpanded={expandedProfileId === profile.id}
+                                    onToggle={() => handleProfileToggle(profile.id)}
+                                    onEditProfile={() => handleEditProfile(profile.id)}
+                                    formatDate={formatDate}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-10 bg-gray-50 rounded-lg">
+                        <p className="text-gray-500 mb-4">아직 등록된 프로필이 없습니다.</p>
+                        <Button onClick={handleCreateProfileClick} variant="default">
+                            첫 프로필 만들기
+                        </Button>
+                    </div>
+                )}
             </section>
         </div>
     );
