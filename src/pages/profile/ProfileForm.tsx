@@ -38,19 +38,15 @@ const formSchema = z.object({
 export default function ProfileForm() {
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const { toast } = useToast()
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { toast } = useToast();
+    const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         mode: "onChange", // 제출 시에만 유효성 검사 실행
         criteriaMode: "firstError", // 각 필드에서 첫 번째 오류만 반환
         shouldFocusError: true, // 오류 발생 시 해당 필드로 자동 포커스
-        // defaultValues: {
-        //     name: "",
-        //     features: "",
-        //     bio: "",
-        // },
     });
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
