@@ -9,7 +9,6 @@
   html {
     font-family: 'AritaBuriKR', sans-serif;
   }
-  /* 여기에서 button 스타일 제거 - shadcn/tailwind에서 처리하게 함 */
 }
 
 :root {
