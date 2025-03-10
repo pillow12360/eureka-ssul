@@ -91,6 +91,8 @@ const HomePage: React.FC = () => {
                         프로필 만들기
                     </Button>
                 </div>
+
+
             </header>
 
             {/* 소개 섹션 */}

@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+export default   {
   darkMode: ["class"],
   content: [
     "./index.html",
@@ -31,12 +31,21 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
-        /* 애니메이션 키프레임... */
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
       animation: {
-        /* 애니메이션... */
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
+
   },
   plugins: [require("tailwindcss-animate")],
 };
