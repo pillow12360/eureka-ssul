@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { User, MessageSquare } from "lucide-react";
 import {Profile} from "@/types/profile.ts";
+import {useAlertDialogStore} from "@/store/useAlertDialogStore.ts";
 
 // 샘플 데이터 - 실제로는 API나 데이터베이스에서 가져올 것입니다
 const sampleProfiles: Profile[] = [
@@ -47,13 +48,23 @@ const HomePage: React.FC = () => {
     const navigate = useNavigate();
     const [profiles, setProfiles] = useState<Profile[]>([]);
 
+    const openProfileForm = useAlertDialogStore(state => state.open);
+
+
     useEffect(() => {
         // 예: fetchProfiles().then(data => setProfiles(data));
         setProfiles(sampleProfiles);
     }, []);
 
     const handleProfileClick = (): void => {
-        navigate("/profile/create");
+        openProfileForm({
+            title: '프로필 꾸미러 가기',
+            description: '사람들에게 자신만의 소개글을 공유해주세요!',
+            onConfirm: () => {
+                navigate('/profile/create')
+            },
+            confirmText: '확인'
+        });
     };
 
     const handleViewProfile = (id: number): void => {
