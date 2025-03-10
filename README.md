@@ -17,8 +17,8 @@
 
 ## 🚀 기술 스택
 
-- **Frontend**: React, TypeScript, Tailwind CSS
-- **Backend**: Spring Boot, MySQL
+- **Frontend**: React, TypeScript, Tailwind CSS, ShadCN
+- **Backend**: Supabase
 - **Deployment**: Docker, AWS (예정)
 
 ## 📁 프로젝트 구조
@@ -43,14 +43,7 @@ EurekaSsal
 ```bash
 cd frontend
 npm install
-yarn start
-```
-
-### Backend 실행
-```bash
-cd backend
-./gradlew build
-java -jar build/libs/eurekassal.jar
+npm run dev
 ```
 
 ## 🙋 팀 멤버
