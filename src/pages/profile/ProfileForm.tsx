@@ -44,9 +44,9 @@ export default function ProfileForm() {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        mode: "onChange", // 제출 시에만 유효성 검사 실행
-        criteriaMode: "firstError", // 각 필드에서 첫 번째 오류만 반환
-        shouldFocusError: true, // 오류 발생 시 해당 필드로 자동 포커스
+        mode: "onChange",
+        criteriaMode: "firstError",
+        shouldFocusError: true,
     });
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +61,6 @@ export default function ProfileForm() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
         try {
-            // 이미지 업로드 (있는 경우)
             let imageUrl = null;
             if (imageFile) {
                 const { url, error: uploadError } = await profileApi.uploadProfileImage(imageFile);
@@ -71,8 +70,7 @@ export default function ProfileForm() {
                 imageUrl = url;
             }
 
-            // 프로필 데이터 생성
-            const {  error } = await profileApi.createProfile({
+            const { error } = await profileApi.createProfile({
                 name: values.name,
                 features: values.features,
                 bio: values.bio,
@@ -83,14 +81,15 @@ export default function ProfileForm() {
                 throw new Error("프로필 생성 실패: " + error.message);
             }
 
-            // 성공 메시지 표시
             toast({
                 title: "프로필 등록 완료!",
                 description: "정상적으로 프로필 등록이 완료되었습니다!",
             });
 
-            // 프로필 목록 페이지로 이동
-            navigate('/');
+            // 2초 후 페이지 이동
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
 
         } catch (error) {
             console.error("프로필 생성 오류:", error);
