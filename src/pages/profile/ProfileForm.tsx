@@ -141,7 +141,7 @@ export default function ProfileForm() {
                                         <Input placeholder="예: 꼼꼼함, 사교성이 좋음, 랩을 좋아함" {...field} />
                                     </FormControl>
                                     <FormDescription>
-                                        유레카 2기 대면반에서 나를 표현할 수 있는 특징이나 관심사를 입력하세요.
+                                        유레카 2기 대면반에서 나를 표현할 수 있는 특징이나 관심사를 입력.
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
