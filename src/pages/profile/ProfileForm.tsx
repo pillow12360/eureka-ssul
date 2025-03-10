@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input.tsx"
 import { Textarea } from "@/components/ui/textarea.tsx"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.tsx"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.tsx"
+import { useToast } from "@/hooks/use-toast"
+
+
 
 const formSchema = z.object({
     name: z.string().min(2, {
@@ -35,6 +38,8 @@ const formSchema = z.object({
 export default function ProfileForm() {
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const { toast } = useToast()
+
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -168,7 +173,12 @@ export default function ProfileForm() {
                             )}
                         />
 
-                        <Button type="submit" className="w-full">프로필 생성</Button>
+                        <Button type="submit" onClick={() => {
+                            toast({
+                                title: "프로필 등록 완료!",
+                                description: "정상적으로 프로필 등록이 완료되었습니다!",
+                            })
+                        }}className="w-full">프로필 생성</Button>
                     </form>
                 </Form>
             </CardContent>
