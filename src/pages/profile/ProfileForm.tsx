@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
 import { z } from "zod"
-
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button.tsx"
 import {
     Form,
@@ -39,6 +39,7 @@ export default function ProfileForm() {
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const { toast } = useToast()
+    const navigate = useNavigate(); //계정 생성 완료 시 HomePage로 이동
 
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -173,12 +174,23 @@ export default function ProfileForm() {
                             )}
                         />
 
-                        <Button type="submit" onClick={() => {
-                            toast({
-                                title: "프로필 등록 완료!",
-                                description: "정상적으로 프로필 등록이 완료되었습니다!",
-                            })
-                        }}className="w-full">프로필 생성</Button>
+                        <Button
+                            type="submit"
+                            onClick={() => {
+                                toast({
+                                    title: "프로필 등록 완료!",
+                                    description: "정상적으로 프로필 등록이 완료되었습니다!",
+                                });
+
+                                // 2초 후 홈 화면으로 이동
+                                setTimeout(() => {
+                                    navigate("/");
+                                }, 2000);
+                            }}
+                            className="w-full"
+                        >
+                            프로필 생성
+                        </Button>
                     </form>
                 </Form>
             </CardContent>
