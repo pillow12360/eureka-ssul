@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useAlertDialogStore } from "@/store/useAlertDialogStore";
+import { useAlertDialogStore } from "@/stores/useAlertDialogStore";
 import {
     Accordion,
     AccordionContent,

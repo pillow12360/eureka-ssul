@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAlertDialogStore } from "@/store/useAlertDialogStore";
+import { useAlertDialogStore } from "@/stores/useAlertDialogStore";
 import { profileApi, Profile } from "@/api/supabaseApi";
 import ProfileCard from "./ProfileCard";
 
