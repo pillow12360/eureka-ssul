@@ -85,7 +85,7 @@ const ProfileList = () => {
     }
 
     return (
-        <div className="container mx-auto py-6 px-4">
+        <div className="container mx-auto py-6 px-4 max-w-[935px] w-full">
             {/* 헤더 섹션 */}
             <header className="flex flex-col md:flex-row justify-between items-center mb-8 border-b pb-4">
                 <h1 className="text-3xl font-bold text-center md:text-left">
