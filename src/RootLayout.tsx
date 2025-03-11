@@ -1,6 +1,6 @@
 // RootLayout.tsx
 import React from 'react';
-import AlertDialogComponent from './store/AlertDialogComponent';
+import AlertDialogComponent from '@/stores/AlertDialogComponent';
 import { Toaster } from "@/components/ui/toaster"
 
 interface RootLayoutProps {
