@@ -139,6 +139,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             title: "댓글 삭제 실패",
                             description: error.message,
                             variant: "destructive",
+                            className: "bg-green-500 text-white font-bold shadow-lg",
+                            duration: 2000, // 2초 후 자동으로 사라짐
                         });
                         return;
                     }
@@ -147,6 +149,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     toast({
                         title: "댓글이 삭제되었습니다",
                         variant: "default",
+                        className: "bg-green-500 text-white font-bold shadow-lg",
+                        duration: 2000, // 2초 후 자동으로 사라짐
                     });
                 } catch (err) {
                     console.error("댓글 삭제 중 오류 발생:", err);
@@ -154,6 +158,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         title: "댓글 삭제 실패",
                         description: "댓글을 삭제하는 중 오류가 발생했습니다.",
                         variant: "destructive",
+                        className: "bg-green-500 text-white font-bold shadow-lg",
+                        duration: 2000, // 2초 후 자동으로 사라짐
                     });
                 }
             },
