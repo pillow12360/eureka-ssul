@@ -1,12 +1,15 @@
 export interface Profile {
     id: string;
+    user_id?: string;
     name: string;
     features: string;
     bio: string;
     image_url: string | null;
+    role?: string;
+    comments: number;
+    like_count: number;
     created_at: string;
     updated_at: string;
-    comments: number;
 }
 
 export interface Comment {
@@ -19,8 +22,14 @@ export interface Comment {
     updated_at: string;
 }
 
-export type NewProfile = Omit<Profile, 'id' | 'created_at' | 'updated_at' | 'comments'>;
-export type ProfileUpdate = Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
-export type NewComment = Omit<Comment, 'id' | 'created_at' | 'updated_at'>
+export interface ProfileLike {
+    id: string;
+    profile_id: string;
+    user_id: string;
+    created_at: string;
+}
 
-// omit 으로 해당 필드명 없는 타입 생성
+export type NewProfile = Omit<Profile, 'id' | 'created_at' | 'updated_at' | 'comments' | 'like_count'>;
+export type ProfileUpdate = Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
+export type NewComment = Omit<Comment, 'id' | 'created_at' | 'updated_at'>;
+export type NewProfileLike = Omit<ProfileLike, 'id' | 'created_at'>;

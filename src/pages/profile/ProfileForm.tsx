@@ -19,7 +19,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { profileApi } from "@/api/supabaseApi"
+import { useProfiles } from "@/hooks/useProfiles"
+import useAuthStore from "@/stores/useAuthStore"
 
 const formSchema = z.object({
     name: z.string().min(2, {
@@ -38,15 +39,20 @@ const formSchema = z.object({
 export default function ProfileForm() {
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
     const navigate = useNavigate();
+    const { user } = useAuthStore();
+    const {
+        createProfile,
+        uploadProfileImage,
+        loading: profileLoading
+    } = useProfiles();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        mode: "onChange", // 제출 시에만 유효성 검사 실행
-        criteriaMode: "firstError", // 각 필드에서 첫 번째 오류만 반환
-        shouldFocusError: true, // 오류 발생 시 해당 필드로 자동 포커스
+        mode: "onChange",
+        criteriaMode: "firstError",
+        shouldFocusError: true,
     });
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,48 +65,43 @@ export default function ProfileForm() {
     };
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsSubmitting(true);
+        if (profileLoading) return;
+
         try {
-            // 이미지 업로드 (있는 경우)
             let imageUrl = null;
             if (imageFile) {
-                const { url, error: uploadError } = await profileApi.uploadProfileImage(imageFile);
-                if (uploadError) {
-                    throw new Error("이미지 업로드 실패: " + uploadError.message);
-                }
+                const url = await uploadProfileImage(imageFile);
                 imageUrl = url;
             }
 
-            // 프로필 데이터 생성
-            const {  error } = await profileApi.createProfile({
+            const profileData = {
                 name: values.name,
                 features: values.features,
                 bio: values.bio,
-                image_url: imageUrl
-            });
+                image_url: imageUrl,
+                user_id: user?.id // 로그인한 사용자 ID 연결
+            };
 
-            if (error) {
-                throw new Error("프로필 생성 실패: " + error.message);
+            const createdProfile = await createProfile(profileData);
+
+            if (createdProfile) {
+                toast({
+                    title: "프로필 등록 완료!",
+                    description: "정상적으로 프로필 등록이 완료되었습니다!",
+                    className: "bg-green-500 text-white font-bold shadow-lg",
+                });
+
+                // 2초 후 페이지 이동
+                setTimeout(() => {
+                    navigate('/');
+                }, 2000);
             }
-
-            // 성공 메시지 표시
-            toast({
-                title: "프로필 등록 완료!",
-                description: "정상적으로 프로필 등록이 완료되었습니다!",
-            });
-
-            // 프로필 목록 페이지로 이동
-            navigate('/');
-
         } catch (error) {
             console.error("프로필 생성 오류:", error);
             toast({
                 title: "오류 발생",
                 description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-                variant: "destructive",
             });
-        } finally {
-            setIsSubmitting(false);
         }
     }
 
@@ -213,9 +214,9 @@ export default function ProfileForm() {
                             <Button
                                 type="submit"
                                 className="w-full"
-                                disabled={isSubmitting}
+                                disabled={profileLoading}
                             >
-                                {isSubmitting ? "처리 중..." : "프로필 생성"}
+                                {profileLoading ? "처리 중..." : "프로필 생성"}
                             </Button>
                         </form>
                     </Form>
