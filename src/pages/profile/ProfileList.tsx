@@ -5,51 +5,35 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAlertDialogStore } from "@/stores/useAlertDialogStore";
-import { profileApi, Profile } from "@/api/supabaseApi";
+import { useProfiles } from "@/hooks/useProfiles";
 import ProfileCard from "./ProfileCard";
 
 const ProfileList = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const [profiles, setProfiles] = useState<Profile[]>([]);
-    const [loading, setLoading] = useState(true);
     const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null);
-
     const openProfileForm = useAlertDialogStore(state => state.open);
 
-    const fetchProfiles = async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await profileApi.getProfiles();
+    // useProfiles 훅 사용
+    const {
+        profiles,
+        loading,
+        error,
+        fetchProfiles
+    } = useProfiles();
 
-            if (error) {
-                toast({
-                    title: "프로필 불러오기 실패",
-                    description: error.message,
-                    variant: "destructive",
-                });
-                return;
-            }
+    // 초기 로딩은 useProfiles 내부의 useEffect에서 자동으로 실행됨
 
-            if (data) {
-                setProfiles(data);
-            }
-        } catch (err) {
-            console.error("프로필 로딩 중 오류 발생:", err);
+    // 오류 처리
+    useEffect(() => {
+        if (error) {
             toast({
                 title: "프로필 불러오기 실패",
-                description: "프로필을 불러오는 중 오류가 발생했습니다.",
+                description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false);
         }
-    };
-
-    // 초기 로딩
-    useEffect(() => {
-        fetchProfiles();
-    }, []);
+    }, [error, toast]);
 
     const handleProfileToggle = (profileId: string) => {
         setExpandedProfileId(expandedProfileId === profileId ? null : profileId);
@@ -101,8 +85,8 @@ const ProfileList = () => {
                 <h1 className="text-3xl font-bold text-center md:text-left">
                     유레카 썰
                     <span className="text-sm font-normal ml-2 text-gray-500">
-            프론트엔드 동료들의 이야기
-          </span>
+                        프론트엔드 동료들의 이야기
+                    </span>
                 </h1>
                 <div className="mt-4 md:mt-0 flex gap-2">
                     <Button
@@ -143,7 +127,7 @@ const ProfileList = () => {
                     </Button>
                 </div>
 
-                {profiles.length > 0 ? (
+                {profiles && profiles.length > 0 ? (
                     <div className="space-y-6">
                         {profiles.map((profile) => (
                             <div key={profile.id} className="mb-6">

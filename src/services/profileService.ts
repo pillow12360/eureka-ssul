@@ -20,6 +20,10 @@ export class ProfileService {
         return this.repository.getById(id);
     }
 
+    async getProfileByUserId(userId: string): Promise<{ data: Profile | null; error: any }> {
+        return this.repository.getByUserId(userId);
+    }
+
     async updateProfile(id: string, updates: ProfileUpdate): Promise<{ data: Profile | null; error: any }> {
         return this.repository.update(id, updates);
     }

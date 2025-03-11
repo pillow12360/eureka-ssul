@@ -12,7 +12,7 @@ export class SupabaseCommentRepository implements ICommentRepository {
     async getByProfileId(profileId: string): Promise<{ data: Comment[] | null; error: any }> {
         try {
             const { data, error } = await supabase
-                .from('comments')
+                .from('new_comments')
                 .select('*')
                 .eq('profile_id', profileId)
                 .order('created_at', { ascending: true });
@@ -28,21 +28,19 @@ export class SupabaseCommentRepository implements ICommentRepository {
         try {
             // 1. 새 댓글 추가
             const { data: newComment, error: commentError } = await supabase
-                .from('comments')
+                .from('new_comments')
                 .insert([commentData])
                 .select('*')
                 .single();
 
             if (commentError) throw commentError;
 
-            // 2. 프로필의 댓글 수 증가
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .update({
-                    comments: supabase.rpc('increment_counter', { row_id: commentData.profile_id }),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', commentData.profile_id);
+            // 2. 프로필의 댓글 수 증가 (새로운 함수 사용)
+            const { error: profileError } = await supabase.rpc('increment_counter', {
+                row_id: commentData.profile_id,
+                table_name: 'new_profiles',
+                column_name: 'comments'
+            });
 
             if (profileError) throw profileError;
 
@@ -56,7 +54,7 @@ export class SupabaseCommentRepository implements ICommentRepository {
     async update(id: string, content: string): Promise<{ data: Comment | null; error: any }> {
         try {
             const { data, error } = await supabase
-                .from('comments')
+                .from('new_comments')
                 .update({ content })
                 .eq('id', id)
                 .select('*')
@@ -73,15 +71,17 @@ export class SupabaseCommentRepository implements ICommentRepository {
         try {
             // 1. 댓글 삭제
             const { error: commentError } = await supabase
-                .from('comments')
+                .from('new_comments')
                 .delete()
                 .eq('id', id);
 
             if (commentError) throw commentError;
 
-            // 2. 프로필의 댓글 수 감소
-            const { error: profileError } = await supabase.rpc('decrement_comment_count', {
-                profile_id: profileId
+            // 2. 프로필의 댓글 수 감소 (새로운 함수 사용)
+            const { error: profileError } = await supabase.rpc('decrement_counter', {
+                row_id: profileId,
+                table_name: 'new_profiles',
+                column_name: 'comments'
             });
 
             if (profileError) throw profileError;

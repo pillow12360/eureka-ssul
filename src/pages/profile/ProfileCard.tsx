@@ -14,9 +14,11 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { commentApi } from "@/api/supabaseApi";
-import { Profile, Comment } from "@/types/models.ts";
+import { useComments } from "@/hooks/useComments";
+import { useProfileLikes } from "@/hooks/useProfileLikes";
+import { Profile, NewComment } from "@/types/models";
 import { Input } from "@/components/ui/input";
+import useAuthStore from "@/stores/useAuthStore";
 
 interface ProfileCardProps {
     profile: Profile;
@@ -24,6 +26,7 @@ interface ProfileCardProps {
     onToggle: () => void;
     onEditProfile: () => void;
     formatDate: (dateString: string) => string;
+    onCommentAdded?: () => void;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -32,50 +35,41 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                                      onToggle,
                                                      onEditProfile,
                                                      formatDate,
+                                                     onCommentAdded,
                                                  }) => {
     const { toast } = useToast();
     const openDialog = useAlertDialogStore(state => state.open);
-    const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
     const [authorName, setAuthorName] = useState(""); // 작성자 이름 상태 추가
-    const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { user } = useAuthStore();
 
-    // 댓글 불러오기
+    // useComments 훅 사용
+    const {
+        comments,
+        loading: commentLoading,
+        error: commentError,
+        fetchComments,
+        createComment,
+        deleteComment
+    } = useComments(profile.id);
+
+    // useProfileLikes 훅 사용
+    const {
+        likeCount,
+        userLiked,
+        loading: likeLoading,
+        fetchLikeStatus,
+        toggleLike
+    } = useProfileLikes(profile.id);
+
+    // 댓글, 좋아요 불러오기
     useEffect(() => {
-        const fetchComments = async () => {
-            if (isExpanded && profile.id) {
-                setIsLoading(true);
-                try {
-                    const { data, error } = await commentApi.getCommentsByProfileId(profile.id);
-
-                    if (error) {
-                        toast({
-                            title: "댓글 불러오기 실패",
-                            description: error.message,
-                            variant: "destructive",
-                        });
-                        return;
-                    }
-
-                    if (data) {
-                        setComments(data);
-                    }
-                } catch (err) {
-                    console.error("댓글 로딩 중 오류 발생:", err);
-                    toast({
-                        title: "댓글 불러오기 실패",
-                        description: "댓글을 불러오는 중 오류가 발생했습니다.",
-                        variant: "destructive",
-                    });
-                } finally {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        fetchComments();
-    }, [isExpanded, profile.id, toast]);
+        if (isExpanded && profile.id) {
+            fetchComments();
+            fetchLikeStatus();
+        }
+    }, [isExpanded, profile.id, fetchComments, fetchLikeStatus]);
 
     const handleCommentSubmit = async () => {
         if (!newComment.trim() || !authorName.trim()) {
@@ -89,24 +83,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
         setIsSubmitting(true);
         try {
-            const { data, error } = await commentApi.createComment({
+            const commentData: NewComment = {
                 profile_id: profile.id,
                 author_name: authorName,
                 content: newComment,
                 parent_id: null
-            });
+            };
 
-            if (error) {
-                toast({
-                    title: "댓글 작성 실패",
-                    description: error.message,
-                    variant: "destructive",
-                });
-                return;
-            }
+            const createdComment = await createComment(commentData);
 
-            if (data) {
-                setComments(prev => [...prev, data]);
+            if (createdComment) {
                 setNewComment("");
                 // 작성자 이름은 유지 (다음 댓글 작성 시 편의성)
                 toast({
@@ -115,6 +101,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     className: "bg-green-500 text-white font-bold shadow-lg",
                     duration: 2000,
                 });
+
+                // 부모 컴포넌트에 댓글 추가 알림 (프로필 새로고침용)
+                if (onCommentAdded) {
+                    onCommentAdded();
+                }
             }
         } catch (err) {
             console.error("댓글 작성 중 오류 발생:", err);
@@ -134,39 +125,53 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             description: "이 댓글을 정말 삭제하시겠습니까?",
             onConfirm: async () => {
                 try {
-                    const { error } = await commentApi.deleteComment(commentId, profile.id);
+                    const success = await deleteComment(commentId, profile.id);
 
-                    if (error) {
+                    if (success) {
                         toast({
-                            title: "댓글 삭제 실패",
-                            description: error.message,
-                            variant: "destructive",
+                            title: "댓글이 삭제되었습니다",
+                            variant: "default",
                             className: "bg-green-500 text-white font-bold shadow-lg",
-                            duration: 2000, // 2초 후 자동으로 사라짐
+                            duration: 2000,
                         });
-                        return;
-                    }
 
-                    setComments(prev => prev.filter(comment => comment.id !== commentId));
-                    toast({
-                        title: "댓글이 삭제되었습니다",
-                        variant: "default",
-                        className: "bg-green-500 text-white font-bold shadow-lg",
-                        duration: 2000, // 2초 후 자동으로 사라짐
-                    });
+                        // 부모 컴포넌트에 댓글 삭제 알림 (프로필 새로고침용)
+                        if (onCommentAdded) {
+                            onCommentAdded();
+                        }
+                    }
                 } catch (err) {
                     console.error("댓글 삭제 중 오류 발생:", err);
                     toast({
                         title: "댓글 삭제 실패",
                         description: "댓글을 삭제하는 중 오류가 발생했습니다.",
                         variant: "destructive",
-                        className: "bg-green-500 text-white font-bold shadow-lg",
-                        duration: 2000, // 2초 후 자동으로 사라짐
                     });
                 }
             },
             confirmText: "삭제",
             cancelText: "취소"
+        });
+    };
+
+    // 좋아요 토글
+    const handleLikeToggle = async () => {
+        if (!user) {
+            toast({
+                title: "로그인 필요",
+                description: "좋아요 기능을 사용하려면 로그인이 필요합니다.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        await toggleLike();
+
+        toast({
+            title: userLiked ? "좋아요가 취소되었습니다" : "좋아요가 추가되었습니다",
+            variant: "default",
+            className: "bg-green-500 text-white font-bold shadow-lg",
+            duration: 2000,
         });
     };
 
@@ -182,7 +187,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 collapsible
                 value={isExpanded ? `profile-${profile.id}` : ""}
                 onValueChange={(value) => {
-                    onToggle(value === `profile-${profile.id}`);
+                    if (typeof onToggle === 'function') {
+                        onToggle(value === `profile-${profile.id}`);
+                    }
                 }}
                 className="w-full"
             >
@@ -205,9 +212,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex items-center text-gray-500 text-sm">
-                                <MessageSquare size={14} className="mr-1" />
-                                <span>댓글 {commentsCount}개</span>
+                            <div className="flex items-center space-x-4 text-gray-500 text-sm">
+                                <div className="flex items-center">
+                                    <MessageSquare size={14} className="mr-1" />
+                                    <span>댓글 {commentsCount}개</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <ThumbsUp size={14} className="mr-1" />
+                                    <span>좋아요 {profile.like_count || 0}개</span>
+                                </div>
                             </div>
                         </div>
                     </AccordionTrigger>
@@ -231,6 +244,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     >
                                         <Edit size={14} className="mr-1" /> 프로필 수정
                                     </Button>
+
+                                    <Button
+                                        variant={userLiked ? "secondary" : "outline"}
+                                        size="sm"
+                                        onClick={handleLikeToggle}
+                                        disabled={likeLoading}
+                                        className={userLiked ? "bg-pink-100 text-pink-800 hover:bg-pink-200" : ""}
+                                    >
+                                        <ThumbsUp size={14} className="mr-1" />
+                                        {userLiked ? '좋아요 취소' : '좋아요'}
+                                    </Button>
                                 </div>
                             </div>
 
@@ -248,6 +272,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <ThumbsUp size={14} />
+                                        <span>좋아요 수: {likeCount}개</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={14} />
                                         <span>최근 활동: {formatDate(profile.updated_at)}</span>
                                     </div>
                                 </div>
@@ -261,8 +289,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
                             {/* 댓글 목록 */}
                             <div className="space-y-4 mb-6">
-                                {isLoading ? (
+                                {commentLoading ? (
                                     <p className="text-center py-4">댓글을 불러오는 중...</p>
+                                ) : commentError ? (
+                                    <p className="text-center py-4 text-red-500">댓글을 불러오는 데 실패했습니다.</p>
                                 ) : comments.length > 0 ? (
                                     comments.map((comment) => (
                                         <div key={comment.id} className="border-b pb-4 last:border-0">
@@ -270,13 +300,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                                 <div className="flex items-center">
                                                     <span className="font-medium">{comment.author_name}</span>
                                                     <span className="text-gray-500 text-sm ml-2">
-                            {formatDate(comment.created_at)}
-                          </span>
+                                                        {formatDate(comment.created_at)}
+                                                    </span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <Button variant="ghost" size="sm" className="h-6 px-2">
-                                                        <ThumbsUp size={14} />
-                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
