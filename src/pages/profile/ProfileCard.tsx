@@ -15,7 +15,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { commentApi } from "@/api/supabaseApi";
-import { Profile, Comment } from "@/types/profile";
+import { Profile, Comment } from "@/types/models.ts";
 import { Input } from "@/components/ui/input";
 
 interface ProfileCardProps {
