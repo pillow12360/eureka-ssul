@@ -112,6 +112,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 toast({
                     title: "댓글이 작성되었습니다",
                     variant: "default",
+                    className: "bg-green-500 text-white font-bold shadow-lg",
+                    duration: 2000,
                 });
             }
         } catch (err) {
