@@ -180,13 +180,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <Accordion
                 type="single"
                 collapsible
-                value={isExpanded ? `profile-${profile.id}` : undefined}
+                value={isExpanded ? `profile-${profile.id}` : ""}
                 onValueChange={(value) => {
-                    if (value === `profile-${profile.id}` && !isExpanded) {
-                        onToggle();
-                    } else if (value === undefined && isExpanded) {
-                        onToggle();
-                    }
+                    onToggle(value === `profile-${profile.id}`);
                 }}
                 className="w-full"
             >
