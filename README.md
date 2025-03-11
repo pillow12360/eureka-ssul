@@ -1,4 +1,4 @@
-# EurekaSsal (유레카썰)
+# EurekaSsul (유레카 썰)
 
 > 자신을 소개하고 사람들의 다양한 의견을 통해 새로운 나를 발견하는 소셜 프로필 플랫폼
 
@@ -17,8 +17,8 @@
 
 ## 🚀 기술 스택
 
-- **Frontend**: React, TypeScript, Tailwind CSS
-- **Backend**: Spring Boot, MySQL
+- **Frontend**: React, TypeScript, Tailwind CSS, ShadCN
+- **Backend**: Supabase
 - **Deployment**: Docker, AWS (예정)
 
 ## 📁 프로젝트 구조
@@ -43,14 +43,7 @@ EurekaSsal
 ```bash
 cd frontend
 npm install
-yarn start
-```
-
-### Backend 실행
-```bash
-cd backend
-./gradlew build
-java -jar build/libs/eurekassal.jar
+npm run dev
 ```
 
 ## 🙋 팀 멤버
