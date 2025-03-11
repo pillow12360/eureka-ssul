@@ -124,7 +124,6 @@ export const useAuthStore = create<AuthState>()(
     )
 );
 
-// ✅ 인증 상태 변경 리스너 (구독 해제 로직 추가)
 const unsubscribeAuthListener = authService.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         console.log('🔵 인증 상태 변경 감지:', event);

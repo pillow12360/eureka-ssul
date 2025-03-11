@@ -54,7 +54,6 @@ const AuthCallback = () => {
         handleAuthCallback();
     }, [location, navigate, checkAuth]);
 
-    // 나머지 코드는 동일...
 };
 
 export default AuthCallback;
