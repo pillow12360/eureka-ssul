@@ -1,11 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase 클라이언트 설정
+import { createClient } from '@supabase/supabase-js';// Supabase 클라이언트 설정
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 인터페이스 정의
 export interface Profile {
     id: string;
     name: string;
@@ -152,11 +149,8 @@ export const commentApi = {
             return { data: null, error };
         }
     },
-
-    // 댓글 작성
     async createComment(commentData: Omit<Comment, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Comment | null; error: any }> {
         try {
-            // 트랜잭션 시작: 댓글 생성 및 프로필의 댓글 수 업데이트
             // 1. 새 댓글 추가
             const { data: newComment, error: commentError } = await supabase
                 .from('comments')
@@ -166,10 +160,14 @@ export const commentApi = {
 
             if (commentError) throw commentError;
 
-            // 2. 프로필의 댓글 수 증가
-            const { error: profileError } = await supabase.rpc('increment_comment_count', {
-                profile_id: commentData.profile_id
-            });
+            // 2. 프로필의 댓글 수 증가 (수동으로 증가)
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({
+                    comments: supabase.rpc('increment_counter', { row_id: commentData.profile_id }),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', commentData.profile_id);
 
             if (profileError) throw profileError;
 
@@ -197,10 +195,8 @@ export const commentApi = {
         }
     },
 
-    // 댓글 삭제
     async deleteComment(id: string, profileId: string): Promise<{ error: any }> {
         try {
-            // 트랜잭션 시작: 댓글 삭제 및 프로필의 댓글 수 감소
             // 1. 댓글 삭제
             const { error: commentError } = await supabase
                 .from('comments')

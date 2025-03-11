@@ -1,4 +1,3 @@
-// src/components/ProfileCard.tsx
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -15,7 +14,8 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Profile, Comment, commentApi } from "@/api/supabaseApi";
+import { commentApi } from "@/api/supabaseApi";
+import { Profile, Comment } from "@/types/models.ts";
 import { Input } from "@/components/ui/input";
 
 interface ProfileCardProps {
