@@ -1,4 +1,3 @@
-// src/components/ProfileCard.tsx
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -8,14 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useAlertDialogStore } from "@/store/useAlertDialogStore";
+import { useAlertDialogStore } from "@/stores/useAlertDialogStore";
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Profile, Comment, commentApi } from "@/api/supabaseApi";
+import { commentApi } from "@/api/supabaseApi";
+import { Profile, Comment } from "@/types/models.ts";
 import { Input } from "@/components/ui/input";
 
 interface ProfileCardProps {
