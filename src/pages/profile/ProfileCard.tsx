@@ -24,6 +24,7 @@ interface ProfileCardProps {
     onToggle: () => void;
     onEditProfile: () => void;
     formatDate: (dateString: string) => string;
+    onCommentAdded?: () => void; // 댓글 추가 이벤트 콜백 추가
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -32,6 +33,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                                      onToggle,
                                                      onEditProfile,
                                                      formatDate,
+                                                     onCommentAdded,
                                                  }) => {
     const { toast } = useToast();
     const openDialog = useAlertDialogStore(state => state.open);
@@ -40,6 +42,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     const [authorName, setAuthorName] = useState(""); // 작성자 이름 상태 추가
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+
+    // accordionValue를 isExpanded 상태와 동기화
+    useEffect(() => {
+        setAccordionValue(isExpanded ? `profile-${profile.id}` : undefined);
+    }, [isExpanded, profile.id]);
 
     // 댓글 불러오기
     useEffect(() => {
@@ -111,8 +119,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 // 작성자 이름은 유지 (다음 댓글 작성 시 편의성)
                 toast({
                     title: "댓글이 작성되었습니다",
-                    variant: "default",
+                    variant: "default",  // 명시적으로 default로 설정
                 });
+
+                // 부모 컴포넌트에 댓글 추가 알림
+                if (onCommentAdded) {
+                    onCommentAdded();
+                }
             }
         } catch (err) {
             console.error("댓글 작성 중 오류 발생:", err);
@@ -148,6 +161,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         title: "댓글이 삭제되었습니다",
                         variant: "default",
                     });
+
+                    // 부모 컴포넌트에 댓글 변경 알림
+                    if (onCommentAdded) {
+                        onCommentAdded();
+                    }
                 } catch (err) {
                     console.error("댓글 삭제 중 오류 발생:", err);
                     toast({
@@ -162,6 +180,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         });
     };
 
+    // 아코디언 값 변경 핸들러
+    const handleAccordionChange = (value: string) => {
+        // 아코디언 값 업데이트
+        setAccordionValue(value);
+
+        // 토글 콜백 호출
+        onToggle();
+    };
+
     // comments 값이 undefined 또는 null일 경우 0으로 표시
     const commentsCount = profile.comments !== undefined && profile.comments !== null
         ? profile.comments
@@ -172,14 +199,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <Accordion
                 type="single"
                 collapsible
-                value={isExpanded ? `profile-${profile.id}` : undefined}
-                onValueChange={(value) => {
-                    if (value === `profile-${profile.id}` && !isExpanded) {
-                        onToggle();
-                    } else if (value === undefined && isExpanded) {
-                        onToggle();
-                    }
-                }}
+                value={accordionValue}
+                onValueChange={handleAccordionChange}
                 className="w-full"
             >
                 <AccordionItem value={`profile-${profile.id}`} className="border-0">
@@ -266,8 +287,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                                 <div className="flex items-center">
                                                     <span className="font-medium">{comment.author_name}</span>
                                                     <span className="text-gray-500 text-sm ml-2">
-                            {formatDate(comment.created_at)}
-                          </span>
+                                                        {formatDate(comment.created_at)}
+                                                    </span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
                                                     <Button variant="ghost" size="sm" className="h-6 px-2">

@@ -97,7 +97,6 @@ export default function ProfileForm() {
             toast({
                 title: "오류 발생",
                 description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-                variant: "destructive",
             });
         } finally {
             setIsSubmitting(false);

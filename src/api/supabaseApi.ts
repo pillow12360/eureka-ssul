@@ -205,10 +205,14 @@ export const commentApi = {
 
             if (commentError) throw commentError;
 
-            // 2. 프로필의 댓글 수 감소
-            const { error: profileError } = await supabase.rpc('decrement_comment_count', {
-                profile_id: profileId
-            });
+            // 2. 프로필의 댓글 수 감소 (수동으로 감소)
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({
+                    comments: supabase.rpc('decrement_counter', { row_id: profileId }),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', profileId);
 
             if (profileError) throw profileError;
 

@@ -17,34 +17,39 @@ const ProfileList = () => {
 
     const openProfileForm = useAlertDialogStore(state => state.open);
 
-    // 프로필 목록 불러오기
-    useEffect(() => {
-        const fetchProfiles = async () => {
-            setLoading(true);
-            try {
-                const { data, error } = await profileApi.getProfiles();
+    const fetchProfiles = async () => {
+        setLoading(true);
+        try {
+            const { data, error } = await profileApi.getProfiles();
 
-                if (error) {
-                    toast({
-                        title: "프로필 불러오기 실패",
-                        description: error.message,
-                        variant: "destructive",
-                    });
-                    return;
-                }
-
-                if (data) {
-                    setProfiles(data);
-                }
-            } catch (err) {
-                console.error("프로필 로딩 중 오류 발생:", err);
-            } finally {
-                setLoading(false);
+            if (error) {
+                toast({
+                    title: "프로필 불러오기 실패",
+                    description: error.message,
+                    variant: "destructive",
+                });
+                return;
             }
-        };
 
+            if (data) {
+                setProfiles(data);
+            }
+        } catch (err) {
+            console.error("프로필 로딩 중 오류 발생:", err);
+            toast({
+                title: "프로필 불러오기 실패",
+                description: "프로필을 불러오는 중 오류가 발생했습니다.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 초기 로딩
+    useEffect(() => {
         fetchProfiles();
-    }, [toast]);
+    }, []);
 
     const handleProfileToggle = (profileId: string) => {
         setExpandedProfileId(expandedProfileId === profileId ? null : profileId);
@@ -74,6 +79,11 @@ const ProfileList = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    // 프로필 목록 새로고침
+    const handleRefreshProfiles = () => {
+        fetchProfiles();
     };
 
     if (loading) {
@@ -122,7 +132,17 @@ const ProfileList = () => {
 
             {/* 프로필 그리드 */}
             <section>
-                <h2 className="text-2xl font-semibold mb-4">프로필 목록</h2>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-semibold">프로필 목록</h2>
+                    <Button
+                        onClick={handleRefreshProfiles}
+                        variant="outline"
+                        size="sm"
+                    >
+                        새로고침
+                    </Button>
+                </div>
+
                 {profiles.length > 0 ? (
                     <div className="space-y-6">
                         {profiles.map((profile) => (
@@ -133,6 +153,7 @@ const ProfileList = () => {
                                     onToggle={() => handleProfileToggle(profile.id)}
                                     onEditProfile={() => handleEditProfile(profile.id)}
                                     formatDate={formatDate}
+                                    onCommentAdded={handleRefreshProfiles}
                                 />
                             </div>
                         ))}
